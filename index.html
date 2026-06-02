@@ -3,235 +3,278 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English Quest - Quizizz Style</title>
+    <title>DuoQuiz Smart - English Master</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Quicksand', sans-serif; background-color: #461a42; }
-        .quizizz-card {
-            background: white;
-            border-bottom: 5px solid #e5e5e5;
-            transition: all 0.2s;
-        }
-        .btn-quizizz {
+        body { font-family: 'Nunito', sans-serif; background-color: #235390; color: #fff; }
+        
+        .duo-btn {
             border-bottom: 4px solid rgba(0,0,0,0.2);
-            transition: transform 0.1s, border-bottom 0.1s;
-        }
-        .btn-quizizz:active {
-            transform: translateY(2px);
-            border-bottom-width: 2px;
-        }
-        .progress-bar {
-            transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        /* Hiệu ứng lật thẻ mượt mà */
-        .card-container { perspective: 1000px; }
-        .card-flip {
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
+            transition: all 0.1s;
             position: relative;
         }
-        .flipped { transform: rotateY(180deg); }
-        .face {
-            backface-visibility: hidden;
-            position: absolute;
-            width: 100%; height: 100%;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
+        .duo-btn:active {
+            transform: translateY(2px);
+            border-bottom-width: 0px;
+            margin-bottom: 4px;
         }
-        .face-back { transform: rotateY(180deg); }
+
+        .q-card {
+            background: white;
+            border-radius: 24px;
+            border: 4px solid #e5e5e5;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: #3c3c3c;
+        }
+
+        .blur-text {
+            filter: blur(8px);
+            transition: filter 0.3s;
+            user-select: none;
+        }
+
+        .progress-container { background: rgba(255,255,255,0.2); border-radius: 20px; }
+        .progress-fill {
+            background: #58cc02;
+            box-shadow: 0 4px 0 #46a302;
+            transition: width 0.6s ease;
+        }
+
+        .floating-duo {
+            animation: floating 3s ease-in-out infinite;
+        }
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
     </style>
 </head>
-<body class="text-gray-800">
+<body class="min-h-screen pb-10">
 
-    <nav class="bg-[#2d033b] p-4 text-white flex justify-between items-center shadow-lg">
-        <div class="flex items-center gap-4">
-            <div class="bg-pink-500 p-2 rounded-lg font-bold">EQ</div>
-            <div class="w-48 h-3 bg-gray-700 rounded-full overflow-hidden">
-                <div id="topProgressBar" class="progress-bar h-full bg-green-400" style="width: 0%"></div>
-            </div>
+    <!-- Header & Progress -->
+    <nav class="max-w-4xl mx-auto p-6 flex items-center gap-6">
+        <button onclick="location.reload()" class="text-white text-2xl"><i class="fas fa-times"></i></button>
+        <div class="flex-1 h-4 progress-container">
+            <div id="mainProgress" class="h-full progress-fill w-0"></div>
         </div>
-        <div class="flex gap-4 font-bold">
-            <span class="text-yellow-400"><i class="fas fa-bolt"></i> <span id="streakCount">0</span></span>
-            <span id="timerDisplay" class="bg-[#461a42] px-3 py-1 rounded">00:00</span>
+        <div class="flex items-center gap-2 font-black text-orange-400">
+            <i class="fas fa-fire text-2xl"></i>
+            <span id="streakNum">0</span>
         </div>
     </nav>
 
-    <main class="container mx-auto px-4 py-8 max-w-4xl">
+    <main class="max-w-2xl mx-auto px-4 mt-8">
         
-        <div id="gameZone" class="space-y-6">
+        <!-- Instruction Area (Khối thông báo của cú Duo) -->
+        <div class="flex items-start gap-4 mb-8">
+            <div class="w-20 h-20 bg-green-500 rounded-2xl flex items-center justify-center text-4xl floating-duo shadow-lg border-b-4 border-green-700 shrink-0">
+                🦉
+            </div>
+            <div id="bubble" class="bg-white text-gray-800 p-4 rounded-2xl relative shadow-md border-2 border-gray-200 flex-1">
+                <p id="instruction" class="font-bold">Nhấn loa để nghe, sau đó viết lại từ đó!</p>
+                <!-- Thẻ chứa gợi ý chi tiết khi viết sai -->
+                <p id="smartHint" class="text-sm text-red-500 mt-1 font-semibold hidden"></p>
+                <div class="absolute left-[-10px] top-6 w-4 h-4 bg-white border-l-2 border-b-2 border-gray-200 rotate-45"></div>
+            </div>
+        </div>
+
+        <!-- Main Card Area -->
+        <div class="q-card p-10 text-center shadow-[0_10px_0_#d1d1d1] mb-10">
+            <div id="wordDisplay" class="text-5xl font-black mb-8 tracking-tight">Challenge</div>
             
-            <div class="card-container h-[400px]">
-                <div id="mainCard" class="card-flip w-full h-full">
-                    <div class="face quizizz-card rounded-3xl p-8 shadow-2xl">
-                        <span class="absolute top-6 left-6 bg-purple-100 text-purple-700 px-4 py-1 rounded-full font-bold" id="badgeLevel">B1</span>
-                        <h2 id="displayWord" class="text-6xl font-bold text-[#2d033b] mb-6">Environment</h2>
-                        <button onclick="playSound(event)" class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full hover:bg-indigo-200 transition text-2xl">
-                            <i class="fas fa-volume-up"></i>
-                        </button>
-                        <p class="mt-8 text-gray-400 font-bold uppercase tracking-widest text-sm">Nhấn để xem đáp án</p>
-                    </div>
+            <!-- Listening Toggle -->
+            <button onclick="handleListen()" class="duo-btn bg-[#1cb0f6] hover:bg-[#1499d6] text-white w-24 h-24 rounded-2xl text-4xl mb-4">
+                <i class="fas fa-volume-up"></i>
+            </button>
+            <p class="text-gray-400 font-bold text-sm uppercase">Bấm để nghe</p>
 
-                    <div class="face face-back quizizz-card rounded-3xl p-8 shadow-2xl border-t-8 border-green-400">
-                        <h3 id="displayMeaning" class="text-4xl font-bold text-green-600 mb-2">Môi trường</h3>
-                        <p id="displayExample" class="text-xl text-gray-500 italic mb-8">"We must protect our environment."</p>
-                        
-                        <div class="grid grid-cols-3 gap-3 w-full max-w-md">
-                            <button onclick="handleGrade(1)" class="btn-quizizz bg-red-500 text-white p-4 rounded-xl font-bold">Quên ❌</button>
-                            <button onclick="handleGrade(3)" class="btn-quizizz bg-orange-400 text-white p-4 rounded-xl font-bold">Khó 🧠</button>
-                            <button onclick="handleGrade(5)" class="btn-quizizz bg-green-500 text-white p-4 rounded-xl font-bold">Dễ ✅</button>
-                        </div>
-                    </div>
-                </div>
+            <!-- Hidden Meaning Area -->
+            <div id="meaningArea" class="hidden mt-6 pt-6 border-t-2 border-dashed">
+                <h3 id="meaningText" class="text-3xl font-bold text-green-600">Thử thách</h3>
+                <p id="exampleText" class="text-gray-500 italic mt-2">"Life is a big challenge."</p>
+            </div>
+        </div>
+
+        <!-- Interactive Zone -->
+        <div class="space-y-4">
+            <input type="text" id="userInput" 
+                class="w-full p-5 rounded-2xl border-2 border-gray-300 text-gray-800 font-bold text-xl focus:border-[#1cb0f6] outline-none shadow-[0_5px_0_#e5e5e5]" 
+                placeholder="Viết từ bạn nghe được..."
+                oninput="checkAnswer()">
+
+            <div class="grid grid-cols-2 gap-4">
+                <button id="micBtn" onclick="handleSpeak()" class="duo-btn bg-[#2d9da6] text-white py-4 rounded-2xl font-black text-lg">
+                    <i class="fas fa-microphone mr-2"></i>LUYỆN NÓI
+                </button>
+                <button id="checkBtn" onclick="checkFinalAnswer()" class="duo-btn bg-[#58cc02] text-white py-4 rounded-2xl font-black text-lg">
+                    KIỂM TRA
+                </button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-[#8854c0] p-6 rounded-2xl text-white shadow-xl">
-                    <label class="block mb-2 font-bold"><i class="fas fa-keyboard mr-2"></i>Thử thách viết:</label>
-                    <input type="text" id="quizInput" oninput="checkWriting()" placeholder="Nhập từ tiếng Anh..." 
-                        class="w-full p-3 rounded-xl border-none text-gray-800 font-bold focus:ring-4 focus:ring-yellow-400 outline-none">
-                </div>
-
-                <div class="bg-[#2d9da6] p-6 rounded-2xl text-white shadow-xl flex flex-col justify-center">
-                    <button id="micBtn" onclick="startSpeech()" class="btn-quizizz bg-white text-[#2d9da6] py-3 rounded-xl font-extrabold text-lg">
-                        <i class="fas fa-microphone mr-2"></i>NHẤN ĐỂ NÓI
-                    </button>
-                    <p id="speechStatus" class="text-center mt-2 text-sm font-bold opacity-80"></p>
-                </div>
-            </div>
-
-            <div class="flex justify-center pt-4">
-                <label class="cursor-pointer bg-white/10 text-white px-6 py-2 rounded-full border border-white/20 hover:bg-white/20 transition">
-                    <i class="fas fa-file-import mr-2"></i> Tải file JSON của bạn
-                    <input type="file" id="jsonInput" accept=".json" class="hidden">
-                </label>
+            <!-- SRS Grading -->
+            <div id="srsButtons" class="hidden grid grid-cols-3 gap-3 pt-4">
+                <button onclick="submitGrade(1)" class="duo-btn bg-red-500 text-white py-3 rounded-xl font-bold">Quên</button>
+                <button onclick="submitGrade(3)" class="duo-btn bg-yellow-500 text-white py-3 rounded-xl font-bold">Khó</button>
+                <button onclick="submitGrade(5)" class="duo-btn bg-green-500 text-white py-3 rounded-xl font-bold">Dễ</button>
             </div>
         </div>
     </main>
 
     <script>
-        let vocabData = [
-            { word: "Magnificent", definition: "Tráng lệ", level: "B1", example: "The view is magnificent.", interval: 1, repetition: 0, efactor: 2.5, dueDate: 0 },
-            { word: "Opportunity", definition: "Cơ hội", level: "B1", example: "A great opportunity to learn.", interval: 1, repetition: 0, efactor: 2.5, dueDate: 0 },
-            { word: "Simple", definition: "Đơn giản", level: "A1", example: "It's a simple task.", interval: 1, repetition: 0, efactor: 2.5, dueDate: 0 }
+        let vocab = [
+            { word: "Magnificent", translation: "Tráng lệ, tuyệt vời", level: "B1", example: "What a magnificent view!", interval: 1, repetition: 0, efactor: 2.5, dueDate: 0 },
+            { word: "Education", translation: "Giáo dục", level: "A2", example: "Education is key to success.", interval: 1, repetition: 0, efactor: 2.5, dueDate: 0 },
+            { word: "Practice", translation: "Luyện tập", level: "A1", example: "Practice makes perfect.", interval: 1, repetition: 0, efactor: 2.5, dueDate: 0 }
         ];
 
-        let currentCard = null;
+        let current = null;
         let streak = 0;
-        let wordsMastered = 0;
+        let score = 0;
 
-        function init() {
-            const saved = localStorage.getItem('quizizzVocab');
-            if(saved) vocabData = JSON.parse(saved);
+        function loadWord() {
+            current = vocab[Math.floor(Math.random() * vocab.length)];
             
-            // Lật thẻ khi click vào card
-            document.getElementById('mainCard').addEventListener('click', function() {
-                this.classList.toggle('flipped');
-            });
-
-            nextQuestion();
+            const display = document.getElementById('wordDisplay');
+            display.innerText = current.word;
+            display.classList.remove('blur-text'); 
+            
+            document.getElementById('meaningText').innerText = current.translation;
+            document.getElementById('exampleText').innerText = current.example;
+            
+            // Reset UI
+            document.getElementById('meaningArea').classList.add('hidden');
+            document.getElementById('srsButtons').classList.add('hidden');
+            document.getElementById('smartHint').classList.add('hidden');
+            document.getElementById('userInput').value = "";
+            document.getElementById('userInput').className = "w-full p-5 rounded-2xl border-2 border-gray-300 text-gray-800 font-bold text-xl focus:border-[#1cb0f6] outline-none shadow-[0_5px_0_#e5e5e5]";
+            document.getElementById('instruction').innerText = "Nhấn loa để nghe, sau đó viết lại từ đó!";
+            document.getElementById('bubble').className = "bg-white text-gray-800 p-4 rounded-2xl relative shadow-md border-2 border-gray-200 flex-1";
         }
 
-        function nextQuestion() {
-            // Reset giao diện
-            document.getElementById('mainCard').classList.remove('flipped');
-            document.getElementById('quizInput').value = "";
-            document.getElementById('quizInput').classList.remove('bg-green-200');
-            document.getElementById('speechStatus').innerText = "";
-
-            // Chọn từ ngẫu nhiên (Ưu tiên từ chưa học hoặc đến hạn)
-            const available = vocabData.filter(v => v.dueDate <= Date.now());
-            currentCard = available.length > 0 
-                ? available[Math.floor(Math.random() * available.length)]
-                : vocabData[Math.floor(Math.random() * vocabData.length)];
-
-            // Hiển thị dữ liệu
-            document.getElementById('displayWord').innerText = currentCard.word;
-            document.getElementById('displayMeaning').innerText = currentCard.definition;
-            document.getElementById('displayExample').innerText = currentCard.example;
-            document.getElementById('badgeLevel').innerText = currentCard.level;
+        function handleListen() {
+            const display = document.getElementById('wordDisplay');
+            display.classList.add('blur-text');
             
-            updateProgress();
+            const msg = new SpeechSynthesisUtterance(current.word);
+            msg.lang = 'en-US';
+            msg.rate = 0.85; // Đọc chậm một chút kiểu Duolingo
+            window.speechSynthesis.speak(msg);
+
+            document.getElementById('instruction').innerText = "Đang nghe... Đừng nhìn vào chữ bị mờ nhé!";
         }
 
-        function handleGrade(q) {
-            // Logic Spaced Repetition (SM-2)
-            if (q >= 3) {
-                streak++;
-                wordsMastered++;
-                currentCard.repetition++;
-                currentCard.interval = currentCard.repetition === 1 ? 1 : (currentCard.repetition === 2 ? 6 : Math.round(currentCard.interval * currentCard.efactor));
+        // Tự động kiểm tra khi người dùng đang gõ (nếu đúng hoàn toàn thì qua luôn)
+        function checkAnswer() {
+            const input = document.getElementById('userInput').value.trim().toLowerCase();
+            if(input === current.word.toLowerCase()) {
+                passQuestion();
+            }
+        }
+
+        // Kiểm tra chi tiết khi bấm nút "KIỂM TRA"
+        function checkFinalAnswer() {
+            const input = document.getElementById('userInput').value.trim().toLowerCase();
+            const target = current.word.toLowerCase();
+
+            if (input === target) {
+                passQuestion();
+            } else if (input === "") {
+                document.getElementById('instruction').innerText = "Bạn chưa nhập gì cả kìa! 😮";
             } else {
-                streak = 0;
-                currentCard.repetition = 0;
-                currentCard.interval = 1;
-            }
-            
-            currentCard.dueDate = Date.now() + (currentCard.interval * 24 * 60 * 60 * 1000);
-            saveData();
-            
-            // Hiệu ứng chuyển cảnh Quizizz
-            document.getElementById('streakCount').innerText = streak;
-            setTimeout(nextQuestion, 300);
-        }
-
-        function checkWriting() {
-            const val = document.getElementById('quizInput').value.toLowerCase().trim();
-            if(val === currentCard.word.toLowerCase()) {
-                document.getElementById('quizInput').classList.add('bg-green-200');
-                // Tự động lật thẻ sau khi viết đúng
-                setTimeout(() => document.getElementById('mainCard').classList.add('flipped'), 500);
+                // Phân tích lỗi sai sử dụng thuật toán khoảng cách ký tự (Levenshtein/Chỉnh sửa đơn giản)
+                analyzeError(input, target);
             }
         }
 
-        function startSpeech() {
+        function passQuestion() {
+            document.getElementById('wordDisplay').classList.remove('blur-text');
+            document.getElementById('userInput').className = "w-full p-5 rounded-2xl border-2 border-green-500 bg-green-100 text-green-800 font-bold text-xl outline-none shadow-[0_5px_0_#46a302]";
+            document.getElementById('instruction').innerText = "Chính xác! Xuất sắc lắm! 🎉";
+            document.getElementById('smartHint').classList.add('hidden');
+            document.getElementById('bubble').className = "bg-green-100 text-green-800 p-4 rounded-2xl relative shadow-md border-2 border-green-300 flex-1";
+            showAnswer();
+        }
+
+        // Hàm thông minh phân tích lỗi chính tả
+        function analyzeError(input, target) {
+            let hintMessage = "";
+            
+            if (target.startsWith(input) && input.length > 2) {
+                hintMessage = `Bị thiếu rồi! Bạn mới viết được một nửa, cố lên!`;
+            } else if (input.length === target.length) {
+                // Đếm số ký tự sai vị trí
+                let diffCount = 0;
+                let wrongCharInput = '';
+                let rightCharTarget = '';
+                for (let i = 0; i < target.length; i++) {
+                    if (input[i] !== target[i]) {
+                        diffCount++;
+                        wrongCharInput = input[i];
+                        rightCharTarget = target[i];
+                    }
+                }
+                if (diffCount <= 2) {
+                    hintMessage = `Gần đúng rồi! Nhầm một chút: Bạn gõ chữ '${wrongCharInput}' thay vì chữ '${rightCharTarget}'.`;
+                } else {
+                    hintMessage = `Sai chính tả khá nhiều rồi, hãy nghe kỹ lại nhé!`;
+                }
+            } else if (Math.abs(input.length - target.length) <= 2) {
+                hintMessage = `Sai một chút thôi! Kiểm tra lại xem có thừa hoặc thiếu ký tự nào không.`;
+            } else {
+                hintMessage = `Hơi xa rời đáp án rồi! Hãy bấm loa nghe lại từ đầu nhé.`;
+            }
+
+            // Giao diện chuyển sang màu đỏ cảnh báo (Duolingo Style)
+            document.getElementById('userInput').className = "w-full p-5 rounded-2xl border-2 border-red-500 bg-red-100 text-red-800 font-bold text-xl outline-none shadow-[0_5px_0_#ea2b2b]";
+            document.getElementById('bubble').className = "bg-red-100 text-red-800 p-4 rounded-2xl relative shadow-md border-2 border-red-300 flex-1";
+            document.getElementById('instruction').innerText = "Chưa chính xác mất rồi! 😢";
+            
+            const hintElement = document.getElementById('smartHint');
+            hintElement.innerText = hintMessage;
+            hintElement.classList.remove('hidden');
+        }
+
+        function showAnswer() {
+            document.getElementById('wordDisplay').classList.remove('blur-text');
+            document.getElementById('meaningArea').classList.remove('hidden');
+            document.getElementById('srsButtons').classList.remove('hidden');
+        }
+
+        function handleSpeak() {
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'en-US';
-            document.getElementById('speechStatus').innerText = "Đang nghe... 🎤";
             recognition.start();
+            
+            document.getElementById('instruction').innerText = "Hãy nói đi, cú Duo đang nghe...";
 
             recognition.onresult = (e) => {
                 const result = e.results[0][0].transcript.toLowerCase();
-                if(result.includes(currentCard.word.toLowerCase())) {
-                    document.getElementById('speechStatus').innerText = "Tuyệt vời! 🔥";
-                    setTimeout(() => document.getElementById('mainCard').classList.add('flipped'), 500);
+                if(result.includes(current.word.toLowerCase())) {
+                    passQuestion();
                 } else {
-                    document.getElementById('speechStatus').innerText = `Bạn nói: "${result}"? Thử lại xem!`;
+                    document.getElementById('instruction').innerText = `Duo nghe giống từ "${result}" hơn. Thử lại nhé!`;
                 }
             };
         }
 
-        function playSound(e) {
-            e.stopPropagation(); // Không lật thẻ khi bấm loa
-            const msg = new SpeechSynthesisUtterance(currentCard.word);
-            msg.lang = 'en-US';
-            window.speechSynthesis.speak(msg);
+        function submitGrade(q) {
+            if(q >= 3) {
+                streak++;
+                score++;
+            } else {
+                streak = 0;
+            }
+            
+            document.getElementById('streakNum').innerText = streak;
+            document.getElementById('mainProgress').style.width = `${(score / (vocab.length * 2)) * 100}%`;
+            
+            loadWord();
         }
 
-        function updateProgress() {
-            const percent = (wordsMastered / vocabData.length) * 100;
-            document.getElementById('topProgressBar').style.width = `${percent}%`;
-        }
-
-        function saveData() {
-            localStorage.setItem('quizizzVocab', JSON.stringify(vocabData));
-        }
-
-        // Import file
-        document.getElementById('jsonInput').addEventListener('change', function(e) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                vocabData = JSON.parse(event.target.result).map(v => ({
-                    ...v, interval: 1, repetition: 0, efactor: 2.5, dueDate: 0
-                }));
-                saveData();
-                nextQuestion();
-            };
-            reader.readAsText(e.target.files[0]);
-        });
-
-        init();
+        loadWord();
     </script>
 </body>
 </html>
