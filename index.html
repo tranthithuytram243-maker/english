@@ -3,177 +3,245 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI English Flow - Spaced Repetition</title>
+    <title>English Pro - Spaced Repetition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .hidden-text { filter: blur(5px); transition: 0.3s; cursor: pointer; }
-        .hidden-text:hover { filter: blur(0); }
-        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+        :root { --duo-green: #58cc02; --duo-blue: #1cb0f6; }
+        .btn-primary { 
+            box-shadow: 0 4px 0 #46a302; transition: all 0.1s; 
+        }
+        .btn-primary:active { transform: translateY(4px); box-shadow: none; }
+        .nav-item { cursor: pointer; transition: 0.2s; border-radius: 12px; }
+        .nav-item:hover { background: #f3f4f6; }
+        .nav-active { color: #1cb0f6; background: #e0f2fe !important; }
+        section { display: none; }
+        section.active { display: block; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen font-sans text-gray-800">
+<body class="bg-white md:bg-gray-50 min-h-screen font-sans">
 
-    <nav class="bg-white border-b-2 border-gray-200 p-4 sticky top-0 z-50 shadow-sm">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-black text-green-600 tracking-tighter">EN-FLOW</h1>
-            <div class="flex gap-6 font-bold">
-                <span title="Chuỗi ngày học tập"><i class="fas fa-fire text-orange-500"></i> <span id="streak-val">0</span></span>
-                <span title="Kinh nghiệm"><i class="fas fa-bolt text-yellow-500"></i> <span id="exp-val">0</span> XP</span>
-            </div>
+    <nav class="fixed bottom-0 left-0 w-full bg-white border-t-2 border-gray-200 p-2 flex justify-around z-50 
+                md:top-0 md:left-0 md:w-64 md:h-full md:border-t-0 md:border-r-2 md:flex-col md:justify-start md:p-4">
+        <h1 class="hidden md:block text-3xl font-black text-green-500 mb-8 px-4">LingoFlow</h1>
+        
+        <div onclick="showPage('home')" id="nav-home" class="nav-item nav-active flex flex-col md:flex-row items-center p-3 gap-3">
+            <i class="fas fa-home text-xl"></i>
+            <span class="text-xs md:text-lg font-bold">TRANG CHỦ</span>
+        </div>
+        <div onclick="showPage('learn')" id="nav-learn" class="nav-item flex flex-col md:flex-row items-center p-3 gap-3">
+            <i class="fas fa-book text-xl"></i>
+            <span class="text-xs md:text-lg font-bold">HỌC TẬP</span>
+        </div>
+        <div onclick="showPage('profile')" id="nav-profile" class="nav-item flex flex-col md:flex-row items-center p-3 gap-3">
+            <i class="fas fa-user text-xl"></i>
+            <span class="text-xs md:text-lg font-bold">HỒ SƠ</span>
         </div>
     </nav>
 
-    <main class="max-w-4xl mx-auto p-4 py-8">
-        <div id="dashboard-view">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-white p-6 rounded-3xl shadow-sm border-2 border-gray-200 col-span-2">
-                    <h2 class="text-xl font-bold mb-2">Chào mừng trở lại! 👋</h2>
-                    <p class="text-gray-500 mb-4">Hôm nay bạn có <span class="font-bold text-blue-600">5 từ cần ôn tập</span> theo phương pháp SRS.</p>
-                    <button onclick="startLesson()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-2xl shadow-[0_4px_0_rgb(22,163,74)] active:shadow-none active:translate-y-1 transition-all">
-                        HỌC NGAY
-                    </button>
+    <main class="md:ml-64 p-4 pb-24 md:pb-8">
+        <header class="max-w-3xl mx-auto flex justify-between items-center py-4 mb-6">
+            <div class="flex gap-4">
+                <span class="font-bold text-orange-500"><i class="fas fa-fire"></i> <span id="streak-count">0</span></span>
+                <span class="font-bold text-blue-500"><i class="fas fa-bolt"></i> <span id="exp-count">0</span></span>
+            </div>
+            <div class="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center text-white">
+                <i class="fas fa-user"></i>
+            </div>
+        </header>
+
+        <section id="page-home" class="active max-w-2xl mx-auto space-y-6">
+            <div class="bg-blue-500 text-white p-8 rounded-3xl shadow-lg relative overflow-hidden">
+                <h2 class="text-2xl font-black mb-2 relative z-10">Tiếp tục hành trình!</h2>
+                <p class="mb-4 opacity-90 relative z-10">Bạn đang ở cấp độ B1. Đừng bỏ lỡ chuỗi học tập!</p>
+                <button onclick="showPage('learn')" class="bg-white text-blue-500 font-bold py-2 px-6 rounded-xl hover:bg-gray-100 transition-colors relative z-10">
+                    BẮT ĐẦU ÔN TẬP
+                </button>
+                <i class="fas fa-graduation-cap absolute -right-4 -bottom-4 text-8xl opacity-20 rotate-12"></i>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white border-2 border-gray-200 p-4 rounded-2xl">
+                    <p class="text-gray-400 font-bold text-sm">TỔNG EXP</p>
+                    <h3 class="text-2xl font-black" id="total-exp-display">0</h3>
                 </div>
-                <div class="bg-blue-600 text-white p-6 rounded-3xl shadow-lg flex flex-col justify-center">
-                    <p class="opacity-80">Tiến độ tổng quát</p>
-                    <h3 class="text-3xl font-bold mb-2">A2 Level</h3>
-                    <div class="w-full bg-blue-400 rounded-full h-2">
-                        <div class="bg-white h-2 rounded-full" style="width: 65%"></div>
+                <div class="bg-white border-2 border-gray-200 p-4 rounded-2xl">
+                    <p class="text-gray-400 font-bold text-sm">HẠNG HIỆN TẠI</p>
+                    <h3 class="text-2xl font-black text-yellow-500">Gold</h3>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-learn" class="max-w-2xl mx-auto">
+            <div id="lesson-container">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="flex-1 bg-gray-200 h-4 rounded-full overflow-hidden border-2 border-gray-100">
+                        <div id="progress-bar" class="bg-green-500 h-full w-0 transition-all duration-500"></div>
+                    </div>
+                </div>
+                <div id="quiz-box" class="min-h-[400px] flex flex-col items-center justify-center text-center">
+                    </div>
+            </div>
+            <div id="ai-feedback" class="fixed bottom-20 left-0 right-0 md:left-64 p-6 bg-white border-t-4 border-red-500 hidden transform translate-y-full transition-transform">
+                <div class="max-w-2xl mx-auto flex gap-4">
+                    <i class="fas fa-times-circle text-red-500 text-3xl"></i>
+                    <div>
+                        <h4 class="font-black text-red-500">Giải thích từ AI:</h4>
+                        <p id="ai-explanation" class="text-gray-700"></p>
+                        <button onclick="nextQuestion()" class="mt-4 bg-red-500 text-white font-bold py-2 px-6 rounded-xl">ĐÃ HIỂU</button>
                     </div>
                 </div>
             </div>
+        </section>
 
-            <div class="bg-white p-6 rounded-3xl border-2 border-dashed border-gray-300 text-center mb-8">
-                <p class="mb-4 font-medium">Bạn có tệp từ vựng riêng? (JSON format)</p>
-                <input type="file" id="fileInput" class="hidden" onchange="handleFileUpload(event)">
-                <label for="fileInput" class="cursor-pointer bg-gray-100 hover:bg-gray-200 py-2 px-6 rounded-xl border border-gray-300 inline-block transition-all">
-                    <i class="fas fa-upload mr-2"></i> Tải tệp lên
+        <section id="page-profile" class="max-w-2xl mx-auto space-y-6">
+            <div class="bg-white border-2 border-gray-200 p-8 rounded-3xl text-center">
+                <div class="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center border-4 border-white shadow-md">
+                    <i class="fas fa-camera text-gray-400 text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-black">Người học tiếng Anh</h2>
+                <p class="text-gray-500">Tham gia từ: Tháng 6, 2026</p>
+            </div>
+            
+            <div class="bg-white border-2 border-gray-200 p-6 rounded-3xl">
+                <h3 class="font-black text-xl mb-4">Cài đặt từ vựng</h3>
+                <input type="file" id="vocabUpload" class="hidden" onchange="importVocab(event)">
+                <label for="vocabUpload" class="w-full flex items-center justify-center gap-3 p-4 border-2 border-dashed border-gray-300 rounded-2xl cursor-pointer hover:bg-gray-50 transition-all">
+                    <i class="fas fa-file-import text-blue-500"></i>
+                    <span class="font-bold text-gray-600">Nhập dữ liệu JSON của bạn</span>
                 </label>
             </div>
-        </div>
-
-        <div id="learning-view" class="hidden">
-            <div class="flex justify-between items-center mb-6">
-                <button onclick="exitLesson()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
-                <div class="flex-1 mx-4 bg-gray-200 rounded-full h-3">
-                    <div id="lesson-progress" class="bg-green-500 h-3 rounded-full transition-all w-0"></div>
-                </div>
-            </div>
-
-            <div id="quiz-container" class="bg-white p-8 rounded-3xl shadow-sm border-2 border-gray-200 min-h-[400px] flex flex-col items-center justify-center text-center">
-                </div>
-
-            <div id="ai-feedback" class="hidden mt-4 p-4 rounded-2xl bg-red-50 border-2 border-red-100 text-red-700 font-medium animate-bounce">
-                </div>
-        </div>
+        </section>
     </main>
 
     <script>
-        // --- DATA & CONFIG ---
-        const defaultVocab = [
-            { id: 1, word: "Commitment", meaning: "Sự cam kết", level: "B1", type: "writing" },
-            { id: 2, word: "Innovation", meaning: "Sự đổi mới", level: "B1", type: "listening" },
-            { id: 3, word: "Sustainable", meaning: "Bền vững", level: "B1", type: "writing" }
-        ];
+        // Quản lý trạng thái
+        let state = {
+            exp: parseInt(localStorage.getItem('exp')) || 0,
+            streak: parseInt(localStorage.getItem('streak')) || 0,
+            vocab: JSON.parse(localStorage.getItem('vocab')) || [
+                { q: "Hello", a: "Xin chào", type: "writing" },
+                { q: "Independence", a: "Độc lập", type: "listening" },
+                { q: "Challenge", a: "Thử thách", type: "writing" }
+            ],
+            currentIndex: 0
+        };
 
-        let userStats = JSON.parse(localStorage.getItem('en_flow_stats')) || { exp: 0, streak: 0, lastDate: null };
-        let currentVocab = JSON.parse(localStorage.getItem('custom_vocab')) || defaultVocab;
-        let currentIndex = 0;
-        let currentScore = 0;
+        // Điều hướng trang
+        function showPage(pageId) {
+            document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('nav-active'));
+            
+            document.getElementById(`page-${pageId}`).classList.add('active');
+            document.getElementById(`nav-${pageId}`).classList.add('nav-active');
 
-        // --- CORE LOGIC ---
-        function updateStatsUI() {
-            document.getElementById('exp-val').innerText = userStats.exp;
-            document.getElementById('streak-val').innerText = userStats.streak;
+            if(pageId === 'learn') startLesson();
+            updateUI();
         }
 
+        function updateUI() {
+            document.getElementById('streak-count').innerText = state.streak;
+            document.getElementById('exp-count').innerText = state.exp;
+            document.getElementById('total-exp-display').innerText = state.exp;
+        }
+
+        // Logic học tập
         function startLesson() {
-            document.getElementById('dashboard-view').classList.add('hidden');
-            document.getElementById('learning-view').classList.remove('hidden');
-            renderQuestion();
+            state.currentIndex = 0;
+            renderQuiz();
         }
 
-        function exitLesson() {
-            location.reload();
-        }
-
-        function renderQuestion() {
-            const item = currentVocab[currentIndex];
-            const container = document.getElementById('quiz-container');
-            const progress = (currentIndex / currentVocab.length) * 100;
-            document.getElementById('lesson-progress').style.width = `${progress}%`;
+        function renderQuiz() {
+            const item = state.vocab[state.currentIndex];
+            const quizBox = document.getElementById('quiz-box');
+            const progress = (state.currentIndex / state.vocab.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
 
             if (item.type === 'listening') {
-                container.innerHTML = `
-                    <div class="mb-6"><i class="fas fa-volume-up text-5xl text-blue-500 cursor-pointer" onclick="speak('${item.word}')"></i></div>
-                    <h3 class="text-xl font-bold mb-6">Nghe và viết lại từ này</h3>
-                    <input type="text" id="answer-input" class="w-full max-w-md p-4 border-2 border-gray-200 rounded-2xl text-center text-xl outline-none focus:border-blue-400" placeholder="...">
-                    <button onclick="checkAnswer()" class="mt-8 bg-blue-500 text-white px-10 py-3 rounded-2xl font-bold">KIỂM TRA</button>
+                quizBox.innerHTML = `
+                    <div class="mb-8 p-6 bg-blue-100 rounded-full cursor-pointer hover:bg-blue-200 transition-all" onclick="speak('${item.q}')">
+                        <i class="fas fa-volume-up text-4xl text-blue-600"></i>
+                    </div>
+                    <h2 class="text-2xl font-black mb-8 text-gray-400">Nghe và viết lại</h2>
+                    <input type="text" id="answer-in" placeholder="Gõ câu trả lời..." class="w-full max-w-md p-4 border-2 border-gray-200 rounded-2xl text-xl outline-none focus:border-blue-400 text-center">
+                    <button onclick="checkAnswer()" class="btn-primary mt-8 w-full max-w-md bg-green-500 text-white py-4 rounded-2xl font-black text-xl">KIỂM TRA</button>
                 `;
-                speak(item.word);
+                speak(item.q);
             } else {
-                container.innerHTML = `
-                    <p class="text-gray-500 mb-2 font-bold uppercase tracking-widest text-sm">Dịch sang tiếng Anh</p>
-                    <h2 class="text-3xl font-black mb-8">"${item.meaning}"</h2>
-                    <input type="text" id="answer-input" class="w-full max-w-md p-4 border-2 border-gray-200 rounded-2xl text-center text-xl outline-none focus:border-green-400" placeholder="...">
-                    <button onclick="checkAnswer()" class="mt-8 bg-green-500 text-white px-10 py-3 rounded-2xl font-bold">KIỂM TRA</button>
+                quizBox.innerHTML = `
+                    <h2 class="text-lg font-bold text-gray-400 mb-2">DỊCH CÂU NÀY</h2>
+                    <div class="text-3xl font-black mb-10">"${item.a}"</div>
+                    <input type="text" id="answer-in" placeholder="Dịch sang tiếng Anh..." class="w-full max-w-md p-4 border-2 border-gray-200 rounded-2xl text-xl outline-none focus:border-green-400 text-center">
+                    <button onclick="checkAnswer()" class="btn-primary mt-8 w-full max-w-md bg-green-500 text-white py-4 rounded-2xl font-black text-xl">KIỂM TRA</button>
                 `;
             }
         }
 
         function checkAnswer() {
-            const input = document.getElementById('answer-input').value.trim().toLowerCase();
-            const correct = currentVocab[currentIndex].word.toLowerCase();
-            const feedbackBox = document.getElementById('ai-feedback');
-
+            const input = document.getElementById('answer-in').value.trim().toLowerCase();
+            const correct = state.vocab[state.currentIndex].q.toLowerCase();
+            
             if (input === correct) {
-                feedbackBox.classList.add('hidden');
-                userStats.exp += 10;
-                currentIndex++;
-                
-                if (currentIndex < currentVocab.length) {
-                    renderQuestion();
+                state.exp += 15;
+                state.currentIndex++;
+                saveData();
+                if (state.currentIndex >= state.vocab.length) {
+                    finishLesson();
                 } else {
-                    alert("Chúc mừng! Bạn đã hoàn thành bài học!");
-                    saveStats();
-                    exitLesson();
+                    renderQuiz();
                 }
             } else {
-                // Giả lập AI giải thích lỗi
-                feedbackBox.classList.remove('hidden');
-                feedbackBox.innerHTML = `<i class="fas fa-robot mr-2"></i> AI: Bạn viết sai rồi. Từ đúng là <b>"${correct}"</b>. Hãy kiểm tra lại chính tả nhé!`;
+                showAIError(`Bạn đã nhầm lẫn. Câu trả lời đúng là "${correct}". Lưu ý về cách chia động từ hoặc chính tả nhé!`);
             }
         }
 
+        function showAIError(msg) {
+            const panel = document.getElementById('ai-feedback');
+            document.getElementById('ai-explanation').innerText = msg;
+            panel.classList.remove('hidden');
+            panel.style.transform = "translateY(0)";
+        }
+
+        function nextQuestion() {
+            const panel = document.getElementById('ai-feedback');
+            panel.style.transform = "translateY(100%)";
+            setTimeout(() => panel.classList.add('hidden'), 300);
+            renderQuiz();
+        }
+
+        function finishLesson() {
+            alert("Tuyệt vời! +50 EXP thưởng!");
+            state.exp += 50;
+            state.streak += 1;
+            saveData();
+            showPage('home');
+        }
+
         function speak(text) {
-            const msg = new SpeechSynthesisUtterance();
-            msg.text = text;
+            const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'en-US';
             window.speechSynthesis.speak(msg);
         }
 
-        function handleFileUpload(event) {
+        function saveData() {
+            localStorage.setItem('exp', state.exp);
+            localStorage.setItem('streak', state.streak);
+            updateUI();
+        }
+
+        function importVocab(event) {
             const file = event.target.files[0];
             const reader = new FileReader();
             reader.onload = (e) => {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    localStorage.setItem('custom_vocab', JSON.stringify(data));
-                    alert("Đã tải từ vựng mới thành công!");
-                    location.reload();
-                } catch (err) {
-                    alert("File không đúng định dạng JSON!");
-                }
+                state.vocab = JSON.parse(e.target.result);
+                localStorage.setItem('vocab', JSON.stringify(state.vocab));
+                alert("Đã nhập dữ liệu thành công!");
             };
             reader.readAsText(file);
         }
 
-        function saveStats() {
-            localStorage.setItem('en_flow_stats', JSON.stringify(userStats));
-        }
-
-        // Khởi tạo
-        updateStatsUI();
+        // Khởi tạo app
+        updateUI();
     </script>
 </body>
 </html>
