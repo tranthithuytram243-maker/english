@@ -3,278 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DuoQuiz Smart - English Master</title>
+    <title>AI English Flow - Spaced Repetition</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Nunito', sans-serif; background-color: #235390; color: #fff; }
-        
-        .duo-btn {
-            border-bottom: 4px solid rgba(0,0,0,0.2);
-            transition: all 0.1s;
-            position: relative;
-        }
-        .duo-btn:active {
-            transform: translateY(2px);
-            border-bottom-width: 0px;
-            margin-bottom: 4px;
-        }
-
-        .q-card {
-            background: white;
-            border-radius: 24px;
-            border: 4px solid #e5e5e5;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            color: #3c3c3c;
-        }
-
-        .blur-text {
-            filter: blur(8px);
-            transition: filter 0.3s;
-            user-select: none;
-        }
-
-        .progress-container { background: rgba(255,255,255,0.2); border-radius: 20px; }
-        .progress-fill {
-            background: #58cc02;
-            box-shadow: 0 4px 0 #46a302;
-            transition: width 0.6s ease;
-        }
-
-        .floating-duo {
-            animation: floating 3s ease-in-out infinite;
-        }
-        @keyframes floating {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
-        }
+        .hidden-text { filter: blur(5px); transition: 0.3s; cursor: pointer; }
+        .hidden-text:hover { filter: blur(0); }
+        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
     </style>
 </head>
-<body class="min-h-screen pb-10">
+<body class="bg-gray-100 min-h-screen font-sans text-gray-800">
 
-    <!-- Header & Progress -->
-    <nav class="max-w-4xl mx-auto p-6 flex items-center gap-6">
-        <button onclick="location.reload()" class="text-white text-2xl"><i class="fas fa-times"></i></button>
-        <div class="flex-1 h-4 progress-container">
-            <div id="mainProgress" class="h-full progress-fill w-0"></div>
-        </div>
-        <div class="flex items-center gap-2 font-black text-orange-400">
-            <i class="fas fa-fire text-2xl"></i>
-            <span id="streakNum">0</span>
+    <nav class="bg-white border-b-2 border-gray-200 p-4 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-black text-green-600 tracking-tighter">EN-FLOW</h1>
+            <div class="flex gap-6 font-bold">
+                <span title="Chuỗi ngày học tập"><i class="fas fa-fire text-orange-500"></i> <span id="streak-val">0</span></span>
+                <span title="Kinh nghiệm"><i class="fas fa-bolt text-yellow-500"></i> <span id="exp-val">0</span> XP</span>
+            </div>
         </div>
     </nav>
 
-    <main class="max-w-2xl mx-auto px-4 mt-8">
-        
-        <!-- Instruction Area (Khối thông báo của cú Duo) -->
-        <div class="flex items-start gap-4 mb-8">
-            <div class="w-20 h-20 bg-green-500 rounded-2xl flex items-center justify-center text-4xl floating-duo shadow-lg border-b-4 border-green-700 shrink-0">
-                🦉
+    <main class="max-w-4xl mx-auto p-4 py-8">
+        <div id="dashboard-view">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border-2 border-gray-200 col-span-2">
+                    <h2 class="text-xl font-bold mb-2">Chào mừng trở lại! 👋</h2>
+                    <p class="text-gray-500 mb-4">Hôm nay bạn có <span class="font-bold text-blue-600">5 từ cần ôn tập</span> theo phương pháp SRS.</p>
+                    <button onclick="startLesson()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-2xl shadow-[0_4px_0_rgb(22,163,74)] active:shadow-none active:translate-y-1 transition-all">
+                        HỌC NGAY
+                    </button>
+                </div>
+                <div class="bg-blue-600 text-white p-6 rounded-3xl shadow-lg flex flex-col justify-center">
+                    <p class="opacity-80">Tiến độ tổng quát</p>
+                    <h3 class="text-3xl font-bold mb-2">A2 Level</h3>
+                    <div class="w-full bg-blue-400 rounded-full h-2">
+                        <div class="bg-white h-2 rounded-full" style="width: 65%"></div>
+                    </div>
+                </div>
             </div>
-            <div id="bubble" class="bg-white text-gray-800 p-4 rounded-2xl relative shadow-md border-2 border-gray-200 flex-1">
-                <p id="instruction" class="font-bold">Nhấn loa để nghe, sau đó viết lại từ đó!</p>
-                <!-- Thẻ chứa gợi ý chi tiết khi viết sai -->
-                <p id="smartHint" class="text-sm text-red-500 mt-1 font-semibold hidden"></p>
-                <div class="absolute left-[-10px] top-6 w-4 h-4 bg-white border-l-2 border-b-2 border-gray-200 rotate-45"></div>
-            </div>
-        </div>
 
-        <!-- Main Card Area -->
-        <div class="q-card p-10 text-center shadow-[0_10px_0_#d1d1d1] mb-10">
-            <div id="wordDisplay" class="text-5xl font-black mb-8 tracking-tight">Challenge</div>
-            
-            <!-- Listening Toggle -->
-            <button onclick="handleListen()" class="duo-btn bg-[#1cb0f6] hover:bg-[#1499d6] text-white w-24 h-24 rounded-2xl text-4xl mb-4">
-                <i class="fas fa-volume-up"></i>
-            </button>
-            <p class="text-gray-400 font-bold text-sm uppercase">Bấm để nghe</p>
-
-            <!-- Hidden Meaning Area -->
-            <div id="meaningArea" class="hidden mt-6 pt-6 border-t-2 border-dashed">
-                <h3 id="meaningText" class="text-3xl font-bold text-green-600">Thử thách</h3>
-                <p id="exampleText" class="text-gray-500 italic mt-2">"Life is a big challenge."</p>
+            <div class="bg-white p-6 rounded-3xl border-2 border-dashed border-gray-300 text-center mb-8">
+                <p class="mb-4 font-medium">Bạn có tệp từ vựng riêng? (JSON format)</p>
+                <input type="file" id="fileInput" class="hidden" onchange="handleFileUpload(event)">
+                <label for="fileInput" class="cursor-pointer bg-gray-100 hover:bg-gray-200 py-2 px-6 rounded-xl border border-gray-300 inline-block transition-all">
+                    <i class="fas fa-upload mr-2"></i> Tải tệp lên
+                </label>
             </div>
         </div>
 
-        <!-- Interactive Zone -->
-        <div class="space-y-4">
-            <input type="text" id="userInput" 
-                class="w-full p-5 rounded-2xl border-2 border-gray-300 text-gray-800 font-bold text-xl focus:border-[#1cb0f6] outline-none shadow-[0_5px_0_#e5e5e5]" 
-                placeholder="Viết từ bạn nghe được..."
-                oninput="checkAnswer()">
-
-            <div class="grid grid-cols-2 gap-4">
-                <button id="micBtn" onclick="handleSpeak()" class="duo-btn bg-[#2d9da6] text-white py-4 rounded-2xl font-black text-lg">
-                    <i class="fas fa-microphone mr-2"></i>LUYỆN NÓI
-                </button>
-                <button id="checkBtn" onclick="checkFinalAnswer()" class="duo-btn bg-[#58cc02] text-white py-4 rounded-2xl font-black text-lg">
-                    KIỂM TRA
-                </button>
+        <div id="learning-view" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <button onclick="exitLesson()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+                <div class="flex-1 mx-4 bg-gray-200 rounded-full h-3">
+                    <div id="lesson-progress" class="bg-green-500 h-3 rounded-full transition-all w-0"></div>
+                </div>
             </div>
 
-            <!-- SRS Grading -->
-            <div id="srsButtons" class="hidden grid grid-cols-3 gap-3 pt-4">
-                <button onclick="submitGrade(1)" class="duo-btn bg-red-500 text-white py-3 rounded-xl font-bold">Quên</button>
-                <button onclick="submitGrade(3)" class="duo-btn bg-yellow-500 text-white py-3 rounded-xl font-bold">Khó</button>
-                <button onclick="submitGrade(5)" class="duo-btn bg-green-500 text-white py-3 rounded-xl font-bold">Dễ</button>
-            </div>
+            <div id="quiz-container" class="bg-white p-8 rounded-3xl shadow-sm border-2 border-gray-200 min-h-[400px] flex flex-col items-center justify-center text-center">
+                </div>
+
+            <div id="ai-feedback" class="hidden mt-4 p-4 rounded-2xl bg-red-50 border-2 border-red-100 text-red-700 font-medium animate-bounce">
+                </div>
         </div>
     </main>
 
     <script>
-        let vocab = [
-            { word: "Magnificent", translation: "Tráng lệ, tuyệt vời", level: "B1", example: "What a magnificent view!", interval: 1, repetition: 0, efactor: 2.5, dueDate: 0 },
-            { word: "Education", translation: "Giáo dục", level: "A2", example: "Education is key to success.", interval: 1, repetition: 0, efactor: 2.5, dueDate: 0 },
-            { word: "Practice", translation: "Luyện tập", level: "A1", example: "Practice makes perfect.", interval: 1, repetition: 0, efactor: 2.5, dueDate: 0 }
+        // --- DATA & CONFIG ---
+        const defaultVocab = [
+            { id: 1, word: "Commitment", meaning: "Sự cam kết", level: "B1", type: "writing" },
+            { id: 2, word: "Innovation", meaning: "Sự đổi mới", level: "B1", type: "listening" },
+            { id: 3, word: "Sustainable", meaning: "Bền vững", level: "B1", type: "writing" }
         ];
 
-        let current = null;
-        let streak = 0;
-        let score = 0;
+        let userStats = JSON.parse(localStorage.getItem('en_flow_stats')) || { exp: 0, streak: 0, lastDate: null };
+        let currentVocab = JSON.parse(localStorage.getItem('custom_vocab')) || defaultVocab;
+        let currentIndex = 0;
+        let currentScore = 0;
 
-        function loadWord() {
-            current = vocab[Math.floor(Math.random() * vocab.length)];
-            
-            const display = document.getElementById('wordDisplay');
-            display.innerText = current.word;
-            display.classList.remove('blur-text'); 
-            
-            document.getElementById('meaningText').innerText = current.translation;
-            document.getElementById('exampleText').innerText = current.example;
-            
-            // Reset UI
-            document.getElementById('meaningArea').classList.add('hidden');
-            document.getElementById('srsButtons').classList.add('hidden');
-            document.getElementById('smartHint').classList.add('hidden');
-            document.getElementById('userInput').value = "";
-            document.getElementById('userInput').className = "w-full p-5 rounded-2xl border-2 border-gray-300 text-gray-800 font-bold text-xl focus:border-[#1cb0f6] outline-none shadow-[0_5px_0_#e5e5e5]";
-            document.getElementById('instruction').innerText = "Nhấn loa để nghe, sau đó viết lại từ đó!";
-            document.getElementById('bubble').className = "bg-white text-gray-800 p-4 rounded-2xl relative shadow-md border-2 border-gray-200 flex-1";
+        // --- CORE LOGIC ---
+        function updateStatsUI() {
+            document.getElementById('exp-val').innerText = userStats.exp;
+            document.getElementById('streak-val').innerText = userStats.streak;
         }
 
-        function handleListen() {
-            const display = document.getElementById('wordDisplay');
-            display.classList.add('blur-text');
-            
-            const msg = new SpeechSynthesisUtterance(current.word);
-            msg.lang = 'en-US';
-            msg.rate = 0.85; // Đọc chậm một chút kiểu Duolingo
-            window.speechSynthesis.speak(msg);
-
-            document.getElementById('instruction').innerText = "Đang nghe... Đừng nhìn vào chữ bị mờ nhé!";
+        function startLesson() {
+            document.getElementById('dashboard-view').classList.add('hidden');
+            document.getElementById('learning-view').classList.remove('hidden');
+            renderQuestion();
         }
 
-        // Tự động kiểm tra khi người dùng đang gõ (nếu đúng hoàn toàn thì qua luôn)
+        function exitLesson() {
+            location.reload();
+        }
+
+        function renderQuestion() {
+            const item = currentVocab[currentIndex];
+            const container = document.getElementById('quiz-container');
+            const progress = (currentIndex / currentVocab.length) * 100;
+            document.getElementById('lesson-progress').style.width = `${progress}%`;
+
+            if (item.type === 'listening') {
+                container.innerHTML = `
+                    <div class="mb-6"><i class="fas fa-volume-up text-5xl text-blue-500 cursor-pointer" onclick="speak('${item.word}')"></i></div>
+                    <h3 class="text-xl font-bold mb-6">Nghe và viết lại từ này</h3>
+                    <input type="text" id="answer-input" class="w-full max-w-md p-4 border-2 border-gray-200 rounded-2xl text-center text-xl outline-none focus:border-blue-400" placeholder="...">
+                    <button onclick="checkAnswer()" class="mt-8 bg-blue-500 text-white px-10 py-3 rounded-2xl font-bold">KIỂM TRA</button>
+                `;
+                speak(item.word);
+            } else {
+                container.innerHTML = `
+                    <p class="text-gray-500 mb-2 font-bold uppercase tracking-widest text-sm">Dịch sang tiếng Anh</p>
+                    <h2 class="text-3xl font-black mb-8">"${item.meaning}"</h2>
+                    <input type="text" id="answer-input" class="w-full max-w-md p-4 border-2 border-gray-200 rounded-2xl text-center text-xl outline-none focus:border-green-400" placeholder="...">
+                    <button onclick="checkAnswer()" class="mt-8 bg-green-500 text-white px-10 py-3 rounded-2xl font-bold">KIỂM TRA</button>
+                `;
+            }
+        }
+
         function checkAnswer() {
-            const input = document.getElementById('userInput').value.trim().toLowerCase();
-            if(input === current.word.toLowerCase()) {
-                passQuestion();
-            }
-        }
+            const input = document.getElementById('answer-input').value.trim().toLowerCase();
+            const correct = currentVocab[currentIndex].word.toLowerCase();
+            const feedbackBox = document.getElementById('ai-feedback');
 
-        // Kiểm tra chi tiết khi bấm nút "KIỂM TRA"
-        function checkFinalAnswer() {
-            const input = document.getElementById('userInput').value.trim().toLowerCase();
-            const target = current.word.toLowerCase();
-
-            if (input === target) {
-                passQuestion();
-            } else if (input === "") {
-                document.getElementById('instruction').innerText = "Bạn chưa nhập gì cả kìa! 😮";
-            } else {
-                // Phân tích lỗi sai sử dụng thuật toán khoảng cách ký tự (Levenshtein/Chỉnh sửa đơn giản)
-                analyzeError(input, target);
-            }
-        }
-
-        function passQuestion() {
-            document.getElementById('wordDisplay').classList.remove('blur-text');
-            document.getElementById('userInput').className = "w-full p-5 rounded-2xl border-2 border-green-500 bg-green-100 text-green-800 font-bold text-xl outline-none shadow-[0_5px_0_#46a302]";
-            document.getElementById('instruction').innerText = "Chính xác! Xuất sắc lắm! 🎉";
-            document.getElementById('smartHint').classList.add('hidden');
-            document.getElementById('bubble').className = "bg-green-100 text-green-800 p-4 rounded-2xl relative shadow-md border-2 border-green-300 flex-1";
-            showAnswer();
-        }
-
-        // Hàm thông minh phân tích lỗi chính tả
-        function analyzeError(input, target) {
-            let hintMessage = "";
-            
-            if (target.startsWith(input) && input.length > 2) {
-                hintMessage = `Bị thiếu rồi! Bạn mới viết được một nửa, cố lên!`;
-            } else if (input.length === target.length) {
-                // Đếm số ký tự sai vị trí
-                let diffCount = 0;
-                let wrongCharInput = '';
-                let rightCharTarget = '';
-                for (let i = 0; i < target.length; i++) {
-                    if (input[i] !== target[i]) {
-                        diffCount++;
-                        wrongCharInput = input[i];
-                        rightCharTarget = target[i];
-                    }
-                }
-                if (diffCount <= 2) {
-                    hintMessage = `Gần đúng rồi! Nhầm một chút: Bạn gõ chữ '${wrongCharInput}' thay vì chữ '${rightCharTarget}'.`;
+            if (input === correct) {
+                feedbackBox.classList.add('hidden');
+                userStats.exp += 10;
+                currentIndex++;
+                
+                if (currentIndex < currentVocab.length) {
+                    renderQuestion();
                 } else {
-                    hintMessage = `Sai chính tả khá nhiều rồi, hãy nghe kỹ lại nhé!`;
+                    alert("Chúc mừng! Bạn đã hoàn thành bài học!");
+                    saveStats();
+                    exitLesson();
                 }
-            } else if (Math.abs(input.length - target.length) <= 2) {
-                hintMessage = `Sai một chút thôi! Kiểm tra lại xem có thừa hoặc thiếu ký tự nào không.`;
             } else {
-                hintMessage = `Hơi xa rời đáp án rồi! Hãy bấm loa nghe lại từ đầu nhé.`;
+                // Giả lập AI giải thích lỗi
+                feedbackBox.classList.remove('hidden');
+                feedbackBox.innerHTML = `<i class="fas fa-robot mr-2"></i> AI: Bạn viết sai rồi. Từ đúng là <b>"${correct}"</b>. Hãy kiểm tra lại chính tả nhé!`;
             }
-
-            // Giao diện chuyển sang màu đỏ cảnh báo (Duolingo Style)
-            document.getElementById('userInput').className = "w-full p-5 rounded-2xl border-2 border-red-500 bg-red-100 text-red-800 font-bold text-xl outline-none shadow-[0_5px_0_#ea2b2b]";
-            document.getElementById('bubble').className = "bg-red-100 text-red-800 p-4 rounded-2xl relative shadow-md border-2 border-red-300 flex-1";
-            document.getElementById('instruction').innerText = "Chưa chính xác mất rồi! 😢";
-            
-            const hintElement = document.getElementById('smartHint');
-            hintElement.innerText = hintMessage;
-            hintElement.classList.remove('hidden');
         }
 
-        function showAnswer() {
-            document.getElementById('wordDisplay').classList.remove('blur-text');
-            document.getElementById('meaningArea').classList.remove('hidden');
-            document.getElementById('srsButtons').classList.remove('hidden');
+        function speak(text) {
+            const msg = new SpeechSynthesisUtterance();
+            msg.text = text;
+            msg.lang = 'en-US';
+            window.speechSynthesis.speak(msg);
         }
 
-        function handleSpeak() {
-            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            recognition.lang = 'en-US';
-            recognition.start();
-            
-            document.getElementById('instruction').innerText = "Hãy nói đi, cú Duo đang nghe...";
-
-            recognition.onresult = (e) => {
-                const result = e.results[0][0].transcript.toLowerCase();
-                if(result.includes(current.word.toLowerCase())) {
-                    passQuestion();
-                } else {
-                    document.getElementById('instruction').innerText = `Duo nghe giống từ "${result}" hơn. Thử lại nhé!`;
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    localStorage.setItem('custom_vocab', JSON.stringify(data));
+                    alert("Đã tải từ vựng mới thành công!");
+                    location.reload();
+                } catch (err) {
+                    alert("File không đúng định dạng JSON!");
                 }
             };
+            reader.readAsText(file);
         }
 
-        function submitGrade(q) {
-            if(q >= 3) {
-                streak++;
-                score++;
-            } else {
-                streak = 0;
-            }
-            
-            document.getElementById('streakNum').innerText = streak;
-            document.getElementById('mainProgress').style.width = `${(score / (vocab.length * 2)) * 100}%`;
-            
-            loadWord();
+        function saveStats() {
+            localStorage.setItem('en_flow_stats', JSON.stringify(userStats));
         }
 
-        loadWord();
+        // Khởi tạo
+        updateStatsUI();
     </script>
 </body>
 </html>
